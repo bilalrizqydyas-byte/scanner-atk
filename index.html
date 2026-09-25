@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Scanner Barcode ATK</title>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    #reader {
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    .hasil {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f1f1f1;
+      border-radius: 10px;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:disabled {
+      background: #999;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>📷 Scan Barcode</h2>
+
+  <div id="reader"></div>
+
+  <div class="hasil">
+    <b>Hasil Scan:</b>
+    <div id="hasil">Belum ada barcode</div>
+  </div>
+
+  <div class="status" id="status">
+    Kamera sedang disiapkan...
+  </div>
+
+  <button id="kembali" style="display:none;" onclick="kembaliKeAplikasi()">
+    KEMBALI KE APLIKASI
+  </button>
+
+</div>
+
+
+<script>
+
+let scanner = null;
+let barcodeBerhasil = false;
+
+
+// Jalankan scanner
+async function mulaiScanner() {
+
+  try {
+
+    scanner = new Html5Qrcode("reader");
+
+    const config = {
+      fps: 10,
+
+      qrbox: {
+        width: 280,
+        height: 150
+      },
+
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39
+      ]
+    };
+
+    await scanner.start(
+      {
+        facingMode: "environment"
+      },
+      config,
+      berhasilScan,
+      function(errorMessage) {
+        // Abaikan error scan sementara
+      }
+    );
+
+    document.getElementById("status").innerText =
+      "Arahkan kamera ke barcode barang.";
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("status").innerText =
+      "Kamera tidak dapat dibuka. Pastikan izin kamera diberikan.";
+
+  }
+
+}
+
+
+// Ketika barcode berhasil terbaca
+async function berhasilScan(barcode) {
+
+  if (barcodeBerhasil) return;
+
+  barcodeBerhasil = true;
+
+  document.getElementById("hasil").innerText = barcode;
+
+  document.getElementById("status").innerText =
+    "Barcode berhasil dibaca.";
+
+  document.getElementById("kembali").style.display = "block";
+
+  try {
+    await scanner.stop();
+  } catch (e) {
+    console.log(e);
+  }
+
+  // Kembali ke aplikasi inventaris
+  kembaliKeAplikasi(barcode);
+}
+
+
+// Kembali ke aplikasi utama
+function kembaliKeAplikasi(barcode) {
+
+  if (!barcode) {
+    barcode = document.getElementById("hasil").innerText;
+  }
+
+  if (!barcode || barcode === "Belum ada barcode") {
+    return;
+  }
+
+  /*
+    NANTI URL APLIKASI APPS SCRIPT KAMU
+    AKAN KITA MASUKKAN DI SINI.
+  */
+
+  const aplikasi =
+    "MASUKKAN_URL_APPS_SCRIPT_DI_SINI";
+
+  window.location.href =
+    aplikasi + "?barcode=" + encodeURIComponent(barcode);
+
+}
+
+
+mulaiScanner();
+
+</script>
+
+</body>
+</html>
